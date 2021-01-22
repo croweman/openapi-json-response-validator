@@ -1,12 +1,33 @@
 # openapi-json-response-validator
 
-DESCRIPTION HERE
+API that utilises the [express-openapi-validator](#https://www.npmjs.com/package/express-openapi-validator) middleware to validate that JSON responses conform to an **OpenAPI 3** specification.
 
-liveness endpoint, example should be in docker compose waiting for healthy
+The API will expose a REST micro service to perform the validation.
 
 ## Table of contents
 
+- [node client](#nodeclient)
+- [c# client](#csharpclient)
+- [Docker](#docker)
 - [License](#license)
+
+---
+
+## node client<a name="nodeclient"></a>
+
+See <a href="./node">here<a/>.
+
+---
+
+## c# client<a name="csharpclient"></a>
+
+```
+npm install `openapi-json-response-validator` --save
+```
+
+---
+
+## Docker<a name="docker"></a>
 
 ---
 
@@ -21,3 +42,5 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
