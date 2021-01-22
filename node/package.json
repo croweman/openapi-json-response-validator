@@ -1,0 +1,40 @@
+{
+  "name": "openapi-json-response-validator",
+  "version": "1.0.0",
+  "description": "Validates a json response against an OpenApi 3 specification",
+  "main": "./lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/croweman/openapi-json-response-validator.git"
+  },
+  "contributors": [
+    {
+      "name": "Lee Crowe",
+      "email": "leecrowe81@googlemail.co.uk"
+    }
+  ],
+  "scripts": {
+    "test": "mocha -- specs -R spec --recursive --timeout 5000 --exit"
+  },
+  "keywords": [
+    "openapi",
+    "json",
+    "response",
+    "validator"
+  ],
+  "author": "Lee Crowe a.k.a croweman",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "~0.21.1",
+    "express": "^4.17.1",
+    "express-openapi-validator": "~4.10.8"
+  },
+  "devDependencies": {
+    "chai": "~3.5.0",
+    "mocha": "~8.1.3",
+    "should": "~11.1.0"
+  },
+  "engines": {
+    "node": ">=8.9.0"
+  }
+}
