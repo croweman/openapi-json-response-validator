@@ -1,0 +1,34 @@
+{
+  "name": "openapi-json-response-validator-in-docker",
+  "version": "0.0.1",
+  "description": "Validates a json response against an OpenApi 3 specification",
+  "main": "./lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/croweman/openapi-json-response-validator.git"
+  },
+  "contributors": [
+    {
+      "name": "Lee Crowe",
+      "email": "leecrowe81@googlemail.co.uk"
+    }
+  ],
+  "scripts": {
+    "test": "mocha -- specs -R spec --recursive --timeout 5000 --exit"
+  },
+  "keywords": [
+    "openapi",
+    "json",
+    "response",
+    "validator"
+  ],
+  "author": "Lee Crowe a.k.a croweman",
+  "license": "MIT",
+  "dependencies": {
+    "openapi-json-response-validator": "0.0.1"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=8.9.0"
+  }
+}

@@ -1,0 +1,5 @@
+node_modules
+Dockerfile
+docker-build.sh
+docker-compose.yml
+api.yaml

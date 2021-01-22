@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+
+  app:
+    build: .
+    container_name: openapi-json-response-validator
+    #image: croweman/openapi-json-response-validator:0.0.1
+    restart: "on-failure:10"
+    volumes:
+      - ./api.yaml:/app/api.yaml
+    ports:
+      - "3010:3010"
+    environment:
+      OPENAPI_JSON_RESPONSE_VALIDATOR_PORT: 3010
+        
+# WANT A HEALTH CHECK DEFINED!!!!!!!!!
+# AND VOLUME, AND PORTS
