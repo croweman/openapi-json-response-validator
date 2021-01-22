@@ -21,9 +21,6 @@ See <a href="./node">here<a/>.
 
 ## c# client<a name="csharpclient"></a>
 
-```
-npm install `openapi-json-response-validator` --save
-```
 
 ---
 
