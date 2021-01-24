@@ -43,8 +43,7 @@ config/runtime.yaml
 **/bin
 **/.vs
 
-node/specs/api.yaml_with_readiness
-node/specs/invalid-api.yaml_with_readiness
+node/specs/*with_readiness*
 
 
 

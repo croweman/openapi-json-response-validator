@@ -1,11 +1,11 @@
 const express = require('express')
-const app = express()
 const bodyParser = require('body-parser')
 const axios = require('axios');
 const fs = require('fs')
 const path = require('path')
 const OpenApiValidator = require('express-openapi-validator');
 
+let app
 let port
 let server
 let initialisationOptions
@@ -20,7 +20,7 @@ let readinessRoutePath
 */
 const validationServiceInitialise = async (options) => {
     port = await startServer(options)
-
+    
     let attempts = 0;
     let response
     let lastError
@@ -29,12 +29,12 @@ const validationServiceInitialise = async (options) => {
         attempts++;
         
         if (initialisationError === true)
-            break;
-        
+            break
+
         try {
             response = await checkReadiness()
-            
-            if (response !== undefined && response.status === 200) {
+
+            if (response !== undefined && response.status === 202) {
                 validationInitialised = true
                 break
             }
@@ -73,7 +73,7 @@ const checkReadiness = async () => {
     } catch (err) {
         throw new Error('An error occurred while trying to initialise. Express server did not start successfully')
     }
-    
+
     return response
 }
 
@@ -123,6 +123,7 @@ const exposeHttpServer = async () => {
         validateResponses: true
     })
 
+    app = express()
     app.use(bodyParser.json())
     app.use(bodyParser.text());
     app.use(bodyParser.urlencoded({ extended: false }));
@@ -153,29 +154,29 @@ const exposeHttpServer = async () => {
             json: body.json,
             statusCode: body.statusCode
         }
-        
+
         next()
     })
-
+    
     app.use(validationMiddleware)
     
-    app.get(readinessRoutePath, (req, res) => {
+    app.get(readinessPath, (req, res) => {
         if (!req.openapi)
             return res.status(500).end()
-
-        res.status(200).end()
+        
+        res.status(202).end()
     })
 
     app.use((req, res, next) => {
         if (!req.openapi)
             return res.status(500).end()
-
+        
         const { headers, json, statusCode } = req.responseOverrides
 
         Object.keys(headers).forEach(key => {
             res.set(key, headers[key])
         })
-        
+
         res.status(statusCode).json(json)
     })
     
@@ -198,7 +199,7 @@ const exposeHttpServer = async () => {
             'express_json_response_validation': true
         });
     });
-
+    
     server = await app.listen(port)
     port = server.address().port
     console.log(`openapi-json-response-validator-internal listening at http://localhost:${port}`)
@@ -208,6 +209,8 @@ const stopServer = () => {
     initialisationOptions = undefined
     validationInitialised = false
     initialisationError = false
+    port = undefined
+    app = undefined
 
     if (!server) return
 
@@ -226,7 +229,8 @@ const stopServer = () => {
 const addReadinessRouteToApiSpec = () => {
     const origCwd = process.cwd();
     const absoluteFilePath = path.resolve(origCwd, initialisationOptions.apiSpec)
-    const newFilePath = absoluteFilePath + '_with_readiness'
+    
+    const newFilePath = absoluteFilePath.replace(/\./, '-') + '_with_readiness.yaml'
 
     fs.copyFileSync(absoluteFilePath, newFilePath)
 
@@ -245,7 +249,7 @@ const addReadinessRouteToApiSpec = () => {
         readinessPath = '/express-json-response-validation-readiness'
         readinessRoutePath = '/express-json-response-validation-readiness'
     } else {
-        readinessPath = '/express-json-response-validation/readiness'
+        readinessPath = '/express-json-response-validation/express-json-response-validation-readiness'
         readinessRoutePath = '/express-json-response-validation-readiness'
         let start = fileContent.substr(0, serversIndex + 8)
         let end = fileContent.substr(serversIndex + 8)
@@ -253,10 +257,10 @@ const addReadinessRouteToApiSpec = () => {
     }
 
     pathIndex = fileContent.indexOf('paths:')
-    let readinessContent = '\n' + padding + readinessPath + ':\n'
+    let readinessContent = '\n' + padding + readinessRoutePath + ':\n'
     readinessContent += padding + padding + 'get:\n'
     readinessContent += padding + padding + padding + 'responses:\n'
-    readinessContent += padding + padding + padding + padding + "'200':\n"
+    readinessContent += padding + padding + padding + padding + "'202':\n"
     readinessContent += padding + padding + padding + padding + padding +  'description: readiness endpoint\n\n'
 
     let start = fileContent.substr(0, pathIndex + 6)
