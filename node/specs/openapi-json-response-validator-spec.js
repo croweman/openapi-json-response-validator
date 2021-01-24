@@ -42,182 +42,195 @@ describe('openapi-json-response-validator', () => {
             }
         })
     })
-
-    describe('validateResponse', () => {
-        describe('returns success', () => {
-            it('when the response is a valid empty array', async () => {
-                await initialise({ apiSpec: './specs/api.yaml', exitProcessWhenServiceIsStopped: false })
-                
-                let result = await validateResponse('GET', '/v1/pets', 200, {}, [])
-
-                expect(result.success).to.equal(true)
-                expect(result.errors.length).to.equal(0)
-                expect(initialised()).to.equal(true)
-                expect(initialisationErrored()).to.equal(false)
-            })
-
-            it('when the response is a valid populated array', async () => {
-                await initialise({ apiSpec: './specs/api.yaml', exitProcessWhenServiceIsStopped: false })
-                
-                let result = await validateResponse('GET', '/v1/pets',200, {}, [
-                    {
-                        id: 123,
-                        name: 'joe',
-                        type: 'dog'
-                    }
-                ])
-
-                expect(result.success).to.equal(true)
-                expect(result.errors.length).to.equal(0)
-                expect(initialised()).to.equal(true)
-                expect(initialisationErrored()).to.equal(false)
-            })
-
-            it('when 400 error is returned that conforms to schema', async () => {
-                await initialise({ apiSpec: './specs/api.yaml', exitProcessWhenServiceIsStopped: false })
-
-                let result = await validateResponse('GET', '/v1/pets', 400, {},  [
-                    "Give me valid input"
-                ])
-                
-                expect(result.success).to.equal(true)
-                expect(result.errors.length).to.equal(0)
-                expect(initialised()).to.equal(true)
-                expect(initialisationErrored()).to.equal(false)
-            })
-        })
+    
+    const testCases = [
+        {
+            apiSpec: './specs/api.yaml',
+            requestPath: '/v1/pets'
+        },
+        {
+            apiSpec: './specs/api-with-no-servers.yaml',
+            requestPath: '/pets'
+        }
+    ]
         
-        describe('returns failure', () => {
-            it('when not initialised', async () => {
-                try {
-                    await validateResponse('GET', '/v1/pets', 200, {}, {})
-                    throw new Error('Fail')
-                } catch (err) {
-                    expect(err.message).to.equal('You must initialise')
-                    expect(initialised()).to.equal(false)
+    testCases.forEach(testCase => {
+        describe('validateResponse', () => {
+            describe('returns success', () => {
+                it('when the response is a valid empty array', async () => {
+                    await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
+
+                    let result = await validateResponse('GET', testCase.requestPath, 200, {}, [])
+
+                    expect(result.success).to.equal(true)
+                    expect(result.errors.length).to.equal(0)
+                    expect(initialised()).to.equal(true)
                     expect(initialisationErrored()).to.equal(false)
-                }
+                })
+
+                it('when the response is a valid populated array', async () => {
+                    await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
+
+                    let result = await validateResponse('GET', testCase.requestPath,200, {}, [
+                        {
+                            id: 123,
+                            name: 'joe',
+                            type: 'dog'
+                        }
+                    ])
+
+                    expect(result.success).to.equal(true)
+                    expect(result.errors.length).to.equal(0)
+                    expect(initialised()).to.equal(true)
+                    expect(initialisationErrored()).to.equal(false)
+                })
+
+                it('when 400 error is returned that conforms to schema', async () => {
+                    await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
+
+                    let result = await validateResponse('GET', testCase.requestPath, 400, {},  [
+                        "Give me valid input"
+                    ])
+
+                    expect(result.success).to.equal(true)
+                    expect(result.errors.length).to.equal(0)
+                    expect(initialised()).to.equal(true)
+                    expect(initialisationErrored()).to.equal(false)
+                })
             })
-            
-            it('when the response is not of the expected type', async () => {
-                await initialise({ apiSpec: './specs/api.yaml', exitProcessWhenServiceIsStopped: false })
 
-                let result = await validateResponse('GET', '/v1/pets', 200, {}, {})
-
-                expect(result.success).to.equal(false)
-                expect(result.errors.length).to.equal(1)
-                expect(result.errors[0].path).to.equal('.response')
-                expect(result.errors[0].message).to.equal('should be array')
-                expect(result.errors[0].errorCode).to.equal('type.openapi.validation')
-                expect(initialised()).to.equal(true)
-                expect(initialisationErrored()).to.equal(false)
-            })
-
-            it('when the response contains an object with additional properties', async () => {
-                await initialise({ apiSpec: './specs/api.yaml', exitProcessWhenServiceIsStopped: false })
-
-                let result = await validateResponse('GET', '/v1/pets', 200, {}, [
-                    {
-                        id: 123,
-                        name: 'joe',
-                        type: 'dog',
-                        newProperty: 'because'
+            describe('returns failure', () => {
+                it('when not initialised', async () => {
+                    try {
+                        await validateResponse('GET', testCase.requestPath, 200, {}, {})
+                        throw new Error('Fail')
+                    } catch (err) {
+                        expect(err.message).to.equal('You must initialise')
+                        expect(initialised()).to.equal(false)
+                        expect(initialisationErrored()).to.equal(false)
                     }
-                ])
-                
-                expect(result.success).to.equal(false)
-                expect(result.errors.length).to.equal(1)
-                expect(result.errors[0].path).to.equal('.response[0].newProperty')
-                expect(result.errors[0].message).to.equal('should NOT have additional properties')
-                expect(result.errors[0].errorCode).to.equal('additionalProperties.openapi.validation')
-                expect(initialised()).to.equal(true)
-                expect(initialisationErrored()).to.equal(false)
-            })
+                })
 
-            it('when the response contains an object with a property defined with the wrong type', async () => {
-                await initialise({ apiSpec: './specs/api.yaml', exitProcessWhenServiceIsStopped: false })
+                it('when the response is not of the expected type', async () => {
+                    await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
 
-                let result = await validateResponse('GET', '/v1/pets', 200, {}, [
-                    {
-                        id: 123,
-                        name: 111,
-                        type: 'dog',
-                    }
-                ])
+                    let result = await validateResponse('GET', testCase.requestPath, 200, {}, {})
 
-                expect(result.success).to.equal(false)
-                expect(result.errors.length).to.equal(1)
-                expect(result.errors[0].path).to.equal('.response[0].name')
-                expect(result.errors[0].message).to.equal('should be string')
-                expect(result.errors[0].errorCode).to.equal('type.openapi.validation')
-                expect(initialised()).to.equal(true)
-                expect(initialisationErrored()).to.equal(false)
-            })
+                    expect(result.success).to.equal(false)
+                    expect(result.errors.length).to.equal(1)
+                    expect(result.errors[0].path).to.equal('.response')
+                    expect(result.errors[0].message).to.equal('should be array')
+                    expect(result.errors[0].errorCode).to.equal('type.openapi.validation')
+                    expect(initialised()).to.equal(true)
+                    expect(initialisationErrored()).to.equal(false)
+                })
 
-            it('when invalid request parameters are provided', async () => {
-                await initialise({ apiSpec: './specs/api.yaml', exitProcessWhenServiceIsStopped: false })
+                it('when the response contains an object with additional properties', async () => {
+                    await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
 
-                try {
-                    await validateResponse('GET', 1, 200, {}, [
+                    let result = await validateResponse('GET', testCase.requestPath, 200, {}, [
+                        {
+                            id: 123,
+                            name: 'joe',
+                            type: 'dog',
+                            newProperty: 'because'
+                        }
+                    ])
+
+                    expect(result.success).to.equal(false)
+                    expect(result.errors.length).to.equal(1)
+                    expect(result.errors[0].path).to.equal('.response[0].newProperty')
+                    expect(result.errors[0].message).to.equal('should NOT have additional properties')
+                    expect(result.errors[0].errorCode).to.equal('additionalProperties.openapi.validation')
+                    expect(initialised()).to.equal(true)
+                    expect(initialisationErrored()).to.equal(false)
+                })
+
+                it.only('when the response contains an object with a property defined with the wrong type', async () => {
+                    await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
+
+                    let result = await validateResponse('GET', testCase.requestPath, 200, {}, [
                         {
                             id: 123,
                             name: 111,
                             type: 'dog',
                         }
                     ])
-                    throw new Error('Fail')
-                } catch (err) {
-                    expect(err.toString()).to.equal('Error: You must provide the correct arguments')
-                }
 
-                expect(initialised()).to.equal(true)
-                expect(initialisationErrored()).to.equal(false)
+                    expect(result.success).to.equal(false)
+                    expect(result.errors.length).to.equal(1)
+                    expect(result.errors[0].path).to.equal('.response[0].name')
+                    expect(result.errors[0].message).to.equal('should be string')
+                    expect(result.errors[0].errorCode).to.equal('type.openapi.validation')
+                    expect(initialised()).to.equal(true)
+                    expect(initialisationErrored()).to.equal(false)
+                })
+
+                it('when invalid request parameters are provided', async () => {
+                    await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
+
+                    try {
+                        await validateResponse('GET', 1, 200, {}, [
+                            {
+                                id: 123,
+                                name: 111,
+                                type: 'dog',
+                            }
+                        ])
+                        throw new Error('Fail')
+                    } catch (err) {
+                        expect(err.toString()).to.equal('Error: You must provide the correct arguments')
+                    }
+
+                    expect(initialised()).to.equal(true)
+                    expect(initialisationErrored()).to.equal(false)
+                })
+
+                it('when 400 error is returned that does not conform to schema', async () => {
+                    await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
+
+                    let result = await validateResponse('GET', testCase.requestPath, 400, {}, [
+                        1234
+                    ])
+
+                    expect(result.success).to.equal(false)
+                    expect(result.errors.length).to.equal(1)
+                    expect(result.errors[0].path).to.equal('.response[0]')
+                    expect(result.errors[0].message).to.equal('should be string')
+                    expect(result.errors[0].errorCode).to.equal('type.openapi.validation')
+                    expect(initialised()).to.equal(true)
+                    expect(initialisationErrored()).to.equal(false)
+                })
+
+                it('when the route does not exist', async () => {
+                    await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
+
+                    let result = await validateResponse('GET', '/v1/pets2', 200, {}, {})
+
+                    console.log(result)
+                    expect(result.success).to.equal(false)
+                    expect(result.errors.length).to.equal(1)
+                    expect(result.errors[0].path).to.equal('/v1/pets2')
+                    expect(result.errors[0].message).to.equal('not found')
+                    expect(initialised()).to.equal(true)
+                    expect(initialisationErrored()).to.equal(false)
+                })
+
+                it('when the route exists but the method type is not supported', async () => {
+                    await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
+
+                    let result = await validateResponse('POST', testCase.requestPath, 200, {}, {})
+
+                    console.log(result)
+                    expect(result.success).to.equal(false)
+                    expect(result.errors.length).to.equal(1)
+                    expect(result.errors[0].path).to.equal(testCase.requestPath)
+                    expect(result.errors[0].message).to.equal('POST method not allowed')
+                    expect(initialised()).to.equal(true)
+                    expect(initialisationErrored()).to.equal(false)
+                })
             })
-
-            it('when 400 error is returned that does not conform to schema', async () => {
-                await initialise({ apiSpec: './specs/api.yaml', exitProcessWhenServiceIsStopped: false })
-
-                let result = await validateResponse('GET', '/v1/pets', 400, {}, [
-                    1234
-                ])
-                
-                expect(result.success).to.equal(false)
-                expect(result.errors.length).to.equal(1)
-                expect(result.errors[0].path).to.equal('.response[0]')
-                expect(result.errors[0].message).to.equal('should be string')
-                expect(result.errors[0].errorCode).to.equal('type.openapi.validation')
-                expect(initialised()).to.equal(true)
-                expect(initialisationErrored()).to.equal(false)
-            })
-
-            it('when the route does not exist', async () => {
-                await initialise({ apiSpec: './specs/api.yaml', exitProcessWhenServiceIsStopped: false })
-
-                let result = await validateResponse('GET', '/v1/pets2', 200, {}, {})
-
-                console.log(result)
-                expect(result.success).to.equal(false)
-                expect(result.errors.length).to.equal(1)
-                expect(result.errors[0].path).to.equal('/v1/pets2')
-                expect(result.errors[0].message).to.equal('not found')
-                expect(initialised()).to.equal(true)
-                expect(initialisationErrored()).to.equal(false)
-            })
-
-            it('when the route exists but the method type is not supported', async () => {
-                await initialise({ apiSpec: './specs/api.yaml', exitProcessWhenServiceIsStopped: false })
-
-                let result = await validateResponse('POST', '/v1/pets', 200, {}, {})
-
-                console.log(result)
-                expect(result.success).to.equal(false)
-                expect(result.errors.length).to.equal(1)
-                expect(result.errors[0].path).to.equal('/v1/pets')
-                expect(result.errors[0].message).to.equal('POST method not allowed')
-                expect(initialised()).to.equal(true)
-                expect(initialisationErrored()).to.equal(false)
-            })
-        })
+        })  
     })
 
     describe('express server', () => {
