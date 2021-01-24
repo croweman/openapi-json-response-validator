@@ -36,7 +36,7 @@ describe('openapi-json-response-validator', () => {
                 await initialise({ apiSpec: 'cheese.yaml', exitProcessWhenServiceIsStopped: false })
                 throw new Error('Fail')
             } catch (err) {
-                expect(err.message).to.equal('Validation server could not be started: Error: An error occurred while trying to initialise. Express server did not start successfully')
+                expect(err.message).to.equal('Validation server could not be started: Error: An error occurred while trying to expose the server')
                 expect(initialised()).to.equal(false)
                 expect(initialisationErrored()).to.equal(true)
             }
@@ -186,6 +186,34 @@ describe('openapi-json-response-validator', () => {
                 expect(result.errors[0].path).to.equal('.response[0]')
                 expect(result.errors[0].message).to.equal('should be string')
                 expect(result.errors[0].errorCode).to.equal('type.openapi.validation')
+                expect(initialised()).to.equal(true)
+                expect(initialisationErrored()).to.equal(false)
+            })
+
+            it('when the route does not exist', async () => {
+                await initialise({ apiSpec: './specs/api.yaml', exitProcessWhenServiceIsStopped: false })
+
+                let result = await validateResponse('GET', '/v1/pets2', 200, {}, {})
+
+                console.log(result)
+                expect(result.success).to.equal(false)
+                expect(result.errors.length).to.equal(1)
+                expect(result.errors[0].path).to.equal('/v1/pets2')
+                expect(result.errors[0].message).to.equal('not found')
+                expect(initialised()).to.equal(true)
+                expect(initialisationErrored()).to.equal(false)
+            })
+
+            it('when the route exists but the method type is not supported', async () => {
+                await initialise({ apiSpec: './specs/api.yaml', exitProcessWhenServiceIsStopped: false })
+
+                let result = await validateResponse('POST', '/v1/pets', 200, {}, {})
+
+                console.log(result)
+                expect(result.success).to.equal(false)
+                expect(result.errors.length).to.equal(1)
+                expect(result.errors[0].path).to.equal('/v1/pets')
+                expect(result.errors[0].message).to.equal('POST method not allowed')
                 expect(initialised()).to.equal(true)
                 expect(initialisationErrored()).to.equal(false)
             })

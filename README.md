@@ -1,6 +1,6 @@
 # openapi-json-response-validator
 
-API that utilises the [express-openapi-validator](#https://www.npmjs.com/package/express-openapi-validator) middleware to validate that JSON responses conform to an **OpenAPI 3** specification.
+API that utilises the Node.js [express-openapi-validator](#https://www.npmjs.com/package/express-openapi-validator) middleware to validate that JSON responses conform to an **OpenAPI 3** specification.
 
 The API will expose a REST micro service to perform the validation.
 

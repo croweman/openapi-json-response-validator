@@ -31,25 +31,9 @@ const initialise = async (options) => {
         initialisationError = true
         throw new Error('Validation server could not be started: ' + err.toString())
     }
-    
-    let response;
-
-    try {
-        response = await axios.get(`http://localhost:${validationPort}/readiness`)
-
-        if (validationServiceInitialisationErrored())
-            throw new Error('An error occurred while trying to initialise. apiSpec failed to be loaded')
-    } catch (err) {
-        initialisationError = true
-        throw new Error('An error occurred while trying to initialise. Express server did not start successfully')
-    }
-
-    if (response.status !== 200)
-        throw new Error('An error occurred while trying to initialise. Express server did not start successfully')
-
-    validationInitialised = true
 
     port = await startServer(options)
+    let response
     
     try {
         response = await axios.get(`http://localhost:${port}/readiness`)

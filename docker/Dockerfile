@@ -6,6 +6,4 @@ COPY .npmrc index.js package.json package-lock.json ./
 
 RUN npm install --production
 
-USER nobody
-
 CMD [ "node", "./index.js"]

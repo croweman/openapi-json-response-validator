@@ -3,8 +3,10 @@ info:
   version: 1.0.0
   title: Test Swagger
   description: Test API
+
 servers:
   - url: /v1
+    
 paths:          
 
   /pets:
