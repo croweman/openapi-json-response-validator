@@ -1,11 +1,11 @@
 const express = require('express')
-const app = express()
 const bodyParser = require('body-parser')
 const axios = require('axios');
 const fs = require('fs')
 const path = require('path')
 const OpenApiValidator = require('express-openapi-validator');
 
+let app
 let port
 let server
 let initialisationOptions
@@ -25,11 +25,11 @@ const validationServiceInitialise = async (options) => {
     let response
     let lastError
 
-    while (attempts < 1) { // NEEDS INCREASING AGAIN 20) {
+    while (attempts < 20) {
         attempts++;
         
         if (initialisationError === true)
-            break;
+            break
 
         try {
             response = await checkReadiness()
@@ -66,14 +66,11 @@ const checkReadiness = async () => {
     let response
     
     try {
-        console.log(100, `http://localhost:${port}${readinessPath}`)
         response = await axios.get(`http://localhost:${port}${readinessPath}`)
-        console.log(101)
+
         if (initialisationError)
             throw new Error('An error occurred while trying to initialise. apiSpec failed to be loaded')
-        console.log(102)
     } catch (err) {
-        console.log(103, err.response.status, err.response.data)
         throw new Error('An error occurred while trying to initialise. Express server did not start successfully')
     }
 
@@ -126,6 +123,7 @@ const exposeHttpServer = async () => {
         validateResponses: true
     })
 
+    app = express()
     app.use(bodyParser.json())
     app.use(bodyParser.text());
     app.use(bodyParser.urlencoded({ extended: false }));
@@ -136,10 +134,10 @@ const exposeHttpServer = async () => {
 
         if (req.path === '/validate-response' && req.method.toLowerCase() !== 'post')
             return res.status(404).end()
-        
+
         if (req.path === readinessPath)
             return next();
-        
+
         const { body } = req
 
         if (!validateRequest(body))
@@ -156,23 +154,20 @@ const exposeHttpServer = async () => {
             json: body.json,
             statusCode: body.statusCode
         }
-        
+
         next()
     })
-
+    
     app.use(validationMiddleware)
-
+    
     app.get(readinessPath, (req, res) => {
-        console.log(200)
         if (!req.openapi)
             return res.status(500).end()
-
-        console.log(202)
+        
         res.status(202).end()
     })
 
     app.use((req, res, next) => {
-        console.log(1, req.originalUrl, req.openapi)
         if (!req.openapi)
             return res.status(500).end()
         
@@ -186,7 +181,6 @@ const exposeHttpServer = async () => {
     })
     
     app.use((err, req, res, next) => {
-        console.log('ERROR')
         let errors = []
 
         if (err) {
@@ -205,7 +199,7 @@ const exposeHttpServer = async () => {
             'express_json_response_validation': true
         });
     });
-
+    
     server = await app.listen(port)
     port = server.address().port
     console.log(`openapi-json-response-validator-internal listening at http://localhost:${port}`)
@@ -215,6 +209,8 @@ const stopServer = () => {
     initialisationOptions = undefined
     validationInitialised = false
     initialisationError = false
+    port = undefined
+    app = undefined
 
     if (!server) return
 
@@ -259,9 +255,6 @@ const addReadinessRouteToApiSpec = () => {
         let end = fileContent.substr(serversIndex + 8)
         fileContent = start + '\n' + padding + '- url: /express-json-response-validation' + end
     }
-    
-    console.log('readinessPath', readinessPath)
-    console.log('readinessRoutePath', readinessRoutePath)
 
     pathIndex = fileContent.indexOf('paths:')
     let readinessContent = '\n' + padding + readinessRoutePath + ':\n'

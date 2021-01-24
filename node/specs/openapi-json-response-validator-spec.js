@@ -3,7 +3,7 @@ const axios = require('axios');
 const { expect } = require('chai')
 
 describe('openapi-json-response-validator', () => {
-    before(() => {
+    beforeEach(() => {
         process.env.TESTING = true
         delete process.env.OPENAPI_JSON_RESPONSE_VALIDATOR_PORT
     })
@@ -146,7 +146,7 @@ describe('openapi-json-response-validator', () => {
                     expect(initialisationErrored()).to.equal(false)
                 })
 
-                it.only('when the response contains an object with a property defined with the wrong type', async () => {
+                it('when the response contains an object with a property defined with the wrong type', async () => {
                     await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
 
                     let result = await validateResponse('GET', testCase.requestPath, 200, {}, [
@@ -206,8 +206,7 @@ describe('openapi-json-response-validator', () => {
                     await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
 
                     let result = await validateResponse('GET', '/v1/pets2', 200, {}, {})
-
-                    console.log(result)
+                    
                     expect(result.success).to.equal(false)
                     expect(result.errors.length).to.equal(1)
                     expect(result.errors[0].path).to.equal('/v1/pets2')
@@ -220,8 +219,7 @@ describe('openapi-json-response-validator', () => {
                     await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
 
                     let result = await validateResponse('POST', testCase.requestPath, 200, {}, {})
-
-                    console.log(result)
+                    
                     expect(result.success).to.equal(false)
                     expect(result.errors.length).to.equal(1)
                     expect(result.errors[0].path).to.equal(testCase.requestPath)
