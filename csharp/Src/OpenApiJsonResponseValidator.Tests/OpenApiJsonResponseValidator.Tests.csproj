@@ -32,5 +32,21 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="docker-compose-invalid-api.yml" />
+    <Content Include="invalid-api.yaml" />
+    <Content Include="api.yaml" />
+    <Content Include="docker-compose-valid-api.yml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="*.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="*.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   
 </Project>

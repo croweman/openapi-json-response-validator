@@ -1,0 +1,74 @@
+openapi: '3.0.0'
+info:
+  version: 1.0.0
+  title: Test Swagger
+  description: Test API
+servers:
+  - url: /v1
+paths:          
+asdf
+  /pets:
+    get:
+      description: |
+        Returns all pets
+      responses:
+        '200':
+          description: pet response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pet'
+
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                        
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Pet:
+      required:
+        - id
+        - name
+        - type
+      properties:
+        id:
+          readOnly: true
+          type: number
+        name:
+          type: string
+        tag:
+          type: string
+        type:
+          $ref: '#/components/schemas/PetType'
+      additionalProperties: false
+
+    PetType:
+      type: string
+      enum:
+        - dog
+        - cat
+          
+    Error:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
