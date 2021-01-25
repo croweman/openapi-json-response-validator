@@ -194,7 +194,7 @@ const exposeHttpServer = async () => {
             errors[0].path = req.originalUrl
 
         res.status(200).json({
-            success: false,
+            valid: false,
             errors: errors,
             'express_json_response_validation': true
         });

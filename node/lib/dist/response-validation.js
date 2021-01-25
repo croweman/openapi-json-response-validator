@@ -104,7 +104,7 @@ const validateResponse = async (method, path, statusCode, headers, json) => {
         }
 
         return {
-            success: false,
+            valid: false,
             errors: [ 'something unexpected has happened']
         }
             
@@ -112,7 +112,7 @@ const validateResponse = async (method, path, statusCode, headers, json) => {
         console.log(err)
 
         return {
-            success: false,
+            valid: false,
             errors: [ err]
         }
     }
@@ -146,28 +146,28 @@ const exposeHttpServer = async () => {
             if (err && err.response && err.response.data)
                 error = err.response.data
 
-            let success = false
+            let valid = false
             let errors = []
 
             if (err && err.response && err.response.status)
-                success = err.response.status === statusCode
+                valid = err.response.status === statusCode
 
-            if (!success)
+            if (!valid)
                 errors.push(error)
 
             return res.status(200).send({
-                success: success,
+                valid: valid,
                 errors: errors
             })
         }
 
-        if (response.data && response.data.success !== undefined && response.data['express_json_response_validation'] === true) {
+        if (response.data && response.data.valid !== undefined && response.data['express_json_response_validation'] === true) {
             delete response.data['express_json_response_validation']
             return res.status(200).send(response.data)
         }
 
         return res.status(200).send({
-            success: response.status === statusCode,
+            valid: response.status === statusCode,
             errors: []
         })
     })
@@ -184,7 +184,7 @@ const exposeHttpServer = async () => {
             }
 
             res.status(200).json({
-                success: false,
+                valid: false,
                 errors: errors,
             });
         });
@@ -194,6 +194,8 @@ const exposeHttpServer = async () => {
     server = await app.listen(port)
     port = server.address().port
     console.log(`openapi-json-response-validator-external listening at http://localhost:${port}`)
+    console.log(`/readiness endpoint exposed at http://localhost:${port}/readiness which will return a 200 status code if validation is available`)
+    console.log(`/validate-response endpoint exposed at http://localhost:${port}/validate-response`)
     
     process.on('SIGTERM', stopServers);
     process.on('SIGINT', stopServers);

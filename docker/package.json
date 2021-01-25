@@ -25,7 +25,7 @@
   "author": "Lee Crowe a.k.a croweman",
   "license": "MIT",
   "dependencies": {
-    "openapi-json-response-validator": "0.0.2"
+    "openapi-json-response-validator": "0.0.4"
   },
   "devDependencies": {},
   "engines": {

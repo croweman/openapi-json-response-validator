@@ -56,13 +56,13 @@ describe('openapi-json-response-validator', () => {
         
     testCases.forEach(testCase => {
         describe('validateResponse', () => {
-            describe('returns success', () => {
+            describe('returns valid', () => {
                 it('when the response is a valid empty array', async () => {
                     await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
 
                     let result = await validateResponse('GET', testCase.requestPath, 200, {}, [])
 
-                    expect(result.success).to.equal(true)
+                    expect(result.valid).to.equal(true)
                     expect(result.errors.length).to.equal(0)
                     expect(initialised()).to.equal(true)
                     expect(initialisationErrored()).to.equal(false)
@@ -79,7 +79,7 @@ describe('openapi-json-response-validator', () => {
                         }
                     ])
 
-                    expect(result.success).to.equal(true)
+                    expect(result.valid).to.equal(true)
                     expect(result.errors.length).to.equal(0)
                     expect(initialised()).to.equal(true)
                     expect(initialisationErrored()).to.equal(false)
@@ -92,14 +92,14 @@ describe('openapi-json-response-validator', () => {
                         "Give me valid input"
                     ])
 
-                    expect(result.success).to.equal(true)
+                    expect(result.valid).to.equal(true)
                     expect(result.errors.length).to.equal(0)
                     expect(initialised()).to.equal(true)
                     expect(initialisationErrored()).to.equal(false)
                 })
             })
 
-            describe('returns failure', () => {
+            describe('returns invalid', () => {
                 it('when not initialised', async () => {
                     try {
                         await validateResponse('GET', testCase.requestPath, 200, {}, {})
@@ -116,7 +116,7 @@ describe('openapi-json-response-validator', () => {
 
                     let result = await validateResponse('GET', testCase.requestPath, 200, {}, {})
 
-                    expect(result.success).to.equal(false)
+                    expect(result.valid).to.equal(false)
                     expect(result.errors.length).to.equal(1)
                     expect(result.errors[0].path).to.equal('.response')
                     expect(result.errors[0].message).to.equal('should be array')
@@ -137,7 +137,7 @@ describe('openapi-json-response-validator', () => {
                         }
                     ])
 
-                    expect(result.success).to.equal(false)
+                    expect(result.valid).to.equal(false)
                     expect(result.errors.length).to.equal(1)
                     expect(result.errors[0].path).to.equal('.response[0].newProperty')
                     expect(result.errors[0].message).to.equal('should NOT have additional properties')
@@ -157,7 +157,7 @@ describe('openapi-json-response-validator', () => {
                         }
                     ])
 
-                    expect(result.success).to.equal(false)
+                    expect(result.valid).to.equal(false)
                     expect(result.errors.length).to.equal(1)
                     expect(result.errors[0].path).to.equal('.response[0].name')
                     expect(result.errors[0].message).to.equal('should be string')
@@ -193,7 +193,7 @@ describe('openapi-json-response-validator', () => {
                         1234
                     ])
 
-                    expect(result.success).to.equal(false)
+                    expect(result.valid).to.equal(false)
                     expect(result.errors.length).to.equal(1)
                     expect(result.errors[0].path).to.equal('.response[0]')
                     expect(result.errors[0].message).to.equal('should be string')
@@ -207,7 +207,7 @@ describe('openapi-json-response-validator', () => {
 
                     let result = await validateResponse('GET', '/v1/pets2', 200, {}, {})
                     
-                    expect(result.success).to.equal(false)
+                    expect(result.valid).to.equal(false)
                     expect(result.errors.length).to.equal(1)
                     expect(result.errors[0].path).to.equal('/v1/pets2')
                     expect(result.errors[0].message).to.equal('not found')
@@ -220,7 +220,7 @@ describe('openapi-json-response-validator', () => {
 
                     let result = await validateResponse('POST', testCase.requestPath, 200, {}, {})
                     
-                    expect(result.success).to.equal(false)
+                    expect(result.valid).to.equal(false)
                     expect(result.errors.length).to.equal(1)
                     expect(result.errors[0].path).to.equal(testCase.requestPath)
                     expect(result.errors[0].message).to.equal('POST method not allowed')
@@ -289,7 +289,7 @@ describe('openapi-json-response-validator', () => {
             })
 
             expect(response.status).to.equal(200)
-            expect(response.data.success).to.equal(true)
+            expect(response.data.valid).to.equal(true)
             expect(response.data.errors.length).to.equal(0)
         })
 
@@ -311,7 +311,7 @@ describe('openapi-json-response-validator', () => {
             })
 
             expect(response.status).to.equal(200)
-            expect(response.data.success).to.equal(false)
+            expect(response.data.valid).to.equal(false)
             expect(response.data.errors.length).to.equal(1)
             expect(response.data.errors[0].path).to.equal('.response[0].id')
             expect(response.data.errors[0].message).to.equal('should be number')

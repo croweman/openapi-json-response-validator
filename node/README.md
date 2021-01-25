@@ -75,8 +75,7 @@ dispose()
 
 ## validateResponse<a name="validateresponse"></a>
 
-You will firstly need to successfully initialise before you can call validateResponse.
-
+You will firstly need to successfully `initialise` before you can call `validateResponse`.
 
 ```js
 const { validateResponse } = require('openapi-json-response-validator')
@@ -90,7 +89,7 @@ try {
         }
     ])
     
-    if (result.success) {
+    if (result.valid === true) {
         console.log('the response conforms to the schema')
     } else {
         console.log('validation failed', result.errors)
@@ -137,7 +136,7 @@ try {
     })
 
     if (response.status === 200) {
-        if (response.data.success === true)
+        if (response.data.valid === true)
             console.log('Validation passed')
         else
             console.log('Validation failed', response.data.errors)

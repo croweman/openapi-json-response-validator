@@ -26,6 +26,10 @@ See <a href="./node">here<a/>.
 
 ## Docker<a name="docker"></a>
 
+Expose the `validate-response` endpoint in a docker container.
+
+See <a href="./docker">here<a/>.
+
 ---
 
 ## License<a name="license"></a>
