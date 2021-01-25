@@ -15,6 +15,12 @@ namespace OpenApiJsonResponseValidator
         private static HttpClient _client;
         private static string _responseValidationUri;
         
+        /// <summary>
+        /// Initialise the object
+        /// </summary>
+        /// <param name="responseValidationUri">Uri to the response validation service</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public static async Task Initialise(string responseValidationUri)
         {
             if (responseValidationUri != null && responseValidationUri.EndsWith("/"))
@@ -50,6 +56,16 @@ namespace OpenApiJsonResponseValidator
         // do we need overload that takes a response object?
         // what if already read the content?
         // what type is json? object?
+        /// <summary>
+        /// Validates a http response
+        /// </summary>
+        /// <param name="method">Http method</param>
+        /// <param name="path">Request path</param>
+        /// <param name="statusCode">Response status code</param>
+        /// <param name="headers">Response headers</param>
+        /// <param name="json">Json content (object or null).  A string should not be supplied!</param>
+        /// <returns>A ValidationResult</returns>
+        /// <exception cref="Exception"></exception>
         public static async Task<ValidationResult> ValidateResponse(
             HttpMethod method,
             string path,
@@ -87,7 +103,7 @@ namespace OpenApiJsonResponseValidator
                 var response = await _client.SendAsync(request);
                 
                 if (response.StatusCode != HttpStatusCode.OK)
-                    throw new SyntaxErrorException($"Unexpected status code {response.StatusCode} was returned");
+                    throw new Exception($"Unexpected status code {response.StatusCode} was returned");
                 
                 var result = JObject.Parse(await response.Content.ReadAsStringAsync());
 

@@ -21,7 +21,7 @@ namespace OpenApiJsonResponseValidator.Tests
         }
 
         [Test]
-        public async Task ValidShouldBeTrueWhenResponseConformsToOpenApiSpec()
+        public async Task ValidShouldBeTrueWhenResponseConformsToOpenApiSpecWithEmptyArray()
         {
             await Setup();
             
@@ -34,6 +34,30 @@ namespace OpenApiJsonResponseValidator.Tests
             Assert.That(validationResult.Errors.Count, Is.EqualTo(0));
         }
         
+        [Test]
+        public async Task ValidShouldBeTrueWhenResponseConformsToOpenApiSpecWithPopulatedArray()
+        {
+            await Setup();
+            
+            await ResponseValidation.Initialise("http://localhost:3010/");
+
+            var json = new List<object>
+            {
+                new
+                {
+                    id = 1,
+                    name = "bob",
+                    type = "dog"
+                }
+            };
+
+            var validationResult = await ResponseValidation.ValidateResponse(HttpMethod.Get, "/v1/pets", HttpStatusCode.OK,
+                new Dictionary<string, string>(), json);
+            
+            Assert.That(validationResult.Valid, Is.True);
+            Assert.That(validationResult.Errors.Count, Is.EqualTo(0));
+        }
+
         [Test]
         public async Task ValidShouldBeFalseWhenResponseDoesNotConformToOpenApiSpec_1()
         {
