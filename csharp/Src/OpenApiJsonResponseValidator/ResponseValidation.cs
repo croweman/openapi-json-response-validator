@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -9,7 +9,10 @@ using Newtonsoft.Json.Linq;
 
 namespace OpenApiJsonResponseValidator
 {
-    public static class ResponseValidation
+    /// <summary>
+    /// Validates http responses against a service Open Api 3 specification
+    /// </summary>
+    public class ResponseValidation
     {
         private static bool _initialised;
         private static HttpClient _client;
@@ -27,7 +30,7 @@ namespace OpenApiJsonResponseValidator
                 responseValidationUri = responseValidationUri.Substring(0, responseValidationUri.Length - 1);
             
             if (string.IsNullOrWhiteSpace(responseValidationUri))
-                throw new Exception($"You must define the {responseValidationUri}");
+                throw new Exception($"You must define the {nameof(responseValidationUri)}");
 
             _responseValidationUri = null;
             _initialised = false;
@@ -49,20 +52,17 @@ namespace OpenApiJsonResponseValidator
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw new Exception("An error occurred while trying to initialise");
+                throw new Exception($"An error occurred while trying to initialise. {e.Message}");
             }
         }
-
-        // do we need overload that takes a response object?
-        // what if already read the content?
-        // what type is json? object?
+        
         /// <summary>
         /// Validates a http response
         /// </summary>
         /// <param name="method">Http method</param>
         /// <param name="path">Request path</param>
         /// <param name="statusCode">Response status code</param>
-        /// <param name="headers">Response headers</param>
+        /// <param name="headers">Response headers (optional)</param>
         /// <param name="json">Json content (object or null).  A string should not be supplied!</param>
         /// <returns>A ValidationResult</returns>
         /// <exception cref="Exception"></exception>
@@ -70,7 +70,7 @@ namespace OpenApiJsonResponseValidator
             HttpMethod method,
             string path,
             HttpStatusCode statusCode,
-            Dictionary<string, string> headers,
+            Dictionary<string, string> headers = null,
             object json = null)
         {
             if (!_initialised)
@@ -80,10 +80,7 @@ namespace OpenApiJsonResponseValidator
                 throw new Exception($"You must define a {nameof(method)}");
             
             if (string.IsNullOrWhiteSpace(path))
-                throw new Exception($"You must define a {path}");
-            
-            if (headers == null)
-                throw new Exception($"You must define {headers}");
+                throw new Exception($"You must define a {nameof(path)}");
 
             try
             {
@@ -94,7 +91,7 @@ namespace OpenApiJsonResponseValidator
                     method = method.ToString().ToUpper(),
                     path,
                     statusCode = (int) statusCode,
-                    headers,
+                    headers = headers ?? new Dictionary<string, string>(),
                     json
                 };
 
@@ -138,6 +135,28 @@ namespace OpenApiJsonResponseValidator
                 };
             }
 
+        }
+        
+        /// <summary>
+        /// Converts response headers to a dictionary
+        /// </summary>
+        /// <param name="response">HttpResponseMessage</param>
+        /// <returns>A dictionary containing response headers</returns>
+        public static Dictionary<string, string> GetResponseHeaders(HttpResponseMessage response)
+        {
+            return response?.Headers is null ? new Dictionary<string, string>() : response.Headers.ToDictionary(header => header.Key, header => header.Value.FirstOrDefault() ?? string.Empty);
+        }
+
+        /// <summary>
+        /// Disposes of dependencies
+        /// </summary>
+        public static void Dispose()
+        {
+            _initialised = false;
+            _responseValidationUri = null;
+            
+            if (_client is object)
+                _client.Dispose();
         }
     }
 }

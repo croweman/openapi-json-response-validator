@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -17,11 +16,45 @@ namespace OpenApiJsonResponseValidator.Tests
         [TearDown]
         public void TearDown()
         {
+            ResponseValidation.Dispose();
             Bash("docker-compose down");
+        }
+        
+        [TestCase(null)]
+        [TestCase("")]
+        public async Task InitialiseFailsIfTheResponseValidationUriIsInvalid(string responseValidationUri)
+        {
+            await Setup();
+
+            try
+            {
+                await ResponseValidation.Initialise(responseValidationUri);
+                Assert.Fail("Fail");
+            }
+            catch (Exception e)
+            {
+                Assert.That(e.Message, Is.EqualTo("You must define the responseValidationUri"));
+            }
+        }
+        
+        [Test]
+        public async Task InitialiseShouldThrowAnErrorIfTheResponseValidationServiceIsNotAvailable()
+        {
+            await Setup("./docker-compose-invalid-api.yml", false);
+
+            try
+            {
+                await ResponseValidation.Initialise("http://localhost:3010/");
+                Assert.Fail("Fail");
+            }
+            catch (Exception e)
+            {
+                Assert.That(e.Message, Is.EqualTo("An error occurred while trying to initialise. An error occurred while sending the request."));
+            }
         }
 
         [Test]
-        public async Task ValidShouldBeTrueWhenResponseConformsToOpenApiSpecWithEmptyArray()
+        public async Task ValidateResponseValidShouldBeTrueWhenResponseConformsToOpenApiSpecWithEmptyArray()
         {
             await Setup();
             
@@ -35,12 +68,12 @@ namespace OpenApiJsonResponseValidator.Tests
         }
         
         [Test]
-        public async Task ValidShouldBeTrueWhenResponseConformsToOpenApiSpecWithPopulatedArray()
+        public async Task ValidateResponseValidShouldBeTrueWhenResponseConformsToOpenApiSpecWithPopulatedArray()
         {
             await Setup();
             
             await ResponseValidation.Initialise("http://localhost:3010/");
-
+            
             var json = new List<object>
             {
                 new
@@ -57,9 +90,26 @@ namespace OpenApiJsonResponseValidator.Tests
             Assert.That(validationResult.Valid, Is.True);
             Assert.That(validationResult.Errors.Count, Is.EqualTo(0));
         }
+        
+        [Test]
+        public async Task ValidateResponseValidShouldBeTrueWhenResponseConformsToOpenApiSpecWithPopulatedArrayFromJsonString()
+        {
+            await Setup();
+            
+            await ResponseValidation.Initialise("http://localhost:3010/");
+
+            var jsonString = "[{\"id\":1,\"name\":\"bob\",\"type\":\"dog\"}]";
+            var json = JsonConvert.DeserializeObject(jsonString);
+
+            var validationResult = await ResponseValidation.ValidateResponse(HttpMethod.Get, "/v1/pets", HttpStatusCode.OK,
+                new Dictionary<string, string>(), json);
+            
+            Assert.That(validationResult.Valid, Is.True);
+            Assert.That(validationResult.Errors.Count, Is.EqualTo(0));
+        }
 
         [Test]
-        public async Task ValidShouldBeFalseWhenResponseDoesNotConformToOpenApiSpec_1()
+        public async Task ValidateResponseValidShouldBeFalseWhenResponseDoesNotConformToOpenApiSpec_1()
         {
             await Setup();
             
@@ -73,7 +123,6 @@ namespace OpenApiJsonResponseValidator.Tests
             var validationResult = await ResponseValidation.ValidateResponse(HttpMethod.Get, "/v1/pets", HttpStatusCode.OK,
                 new Dictionary<string, string>(), json);
             
-            Console.WriteLine(JsonConvert.SerializeObject(validationResult));
             Assert.That(validationResult.Valid, Is.False);
             Assert.That(validationResult.Errors.Count, Is.EqualTo(4));
             Assert.That(validationResult.Errors[0], Is.EqualTo("{\"path\":\".response[0].dayOfWeek\",\"message\":\"should NOT have additional properties\",\"errorCode\":\"additionalProperties.openapi.validation\"}"));
@@ -81,9 +130,9 @@ namespace OpenApiJsonResponseValidator.Tests
             Assert.That(validationResult.Errors[2], Is.EqualTo("{\"path\":\".response[0].name\",\"message\":\"should have required property 'name'\",\"errorCode\":\"required.openapi.validation\"}"));
             Assert.That(validationResult.Errors[3], Is.EqualTo("{\"path\":\".response[0].type\",\"message\":\"should have required property 'type'\",\"errorCode\":\"required.openapi.validation\"}"));
         }
-        
+
         [Test]
-        public async Task ValidShouldBeFalseWhenResponseDoesNotConformToOpenApiSpec_2()
+        public async Task ValidateResponseValidShouldBeFalseWhenResponseDoesNotConformToOpenApiSpec_2()
         {
             await Setup();
             
@@ -94,14 +143,13 @@ namespace OpenApiJsonResponseValidator.Tests
             var validationResult = await ResponseValidation.ValidateResponse(HttpMethod.Get, "/v1/pets", HttpStatusCode.OK,
                 new Dictionary<string, string>(), json);
             
-            Console.WriteLine(JsonConvert.SerializeObject(validationResult));
             Assert.That(validationResult.Valid, Is.False);
             Assert.That(validationResult.Errors.Count, Is.EqualTo(1));
             Assert.That(validationResult.Errors[0], Is.EqualTo("{\"path\":\".response\",\"message\":\"should be array\",\"errorCode\":\"type.openapi.validation\"}"));
         }
         
         [Test]
-        public async Task ValidShouldBeFalseWhenResponseDoesNotConformToOpenApiSpec_3_NoJson()
+        public async Task ValidateResponseValidShouldBeFalseWhenResponseDoesNotConformToOpenApiSpec_3_NoJson()
         {
             await Setup();
             
@@ -110,33 +158,67 @@ namespace OpenApiJsonResponseValidator.Tests
             var validationResult = await ResponseValidation.ValidateResponse(HttpMethod.Get, "/v1/pets", HttpStatusCode.OK,
                 new Dictionary<string, string>());
             
-            Console.WriteLine(JsonConvert.SerializeObject(validationResult));
             Assert.That(validationResult.Valid, Is.False);
             Assert.That(validationResult.Errors.Count, Is.EqualTo(1));
             Assert.That(validationResult.Errors[0], Is.EqualTo("{\"path\":\".response\",\"message\":\"response body required.\"}"));
         }
         
         [Test]
-        public async Task ShouldThrowAnErrorIfTheResponseValidationServiceIsNotAvailable()
+        public async Task ValidateResponseThrowsAnExceptionWhenNotInitialised()
         {
-            await Setup("./docker-compose-invalid-api.yml", false);
-
             try
             {
-                await ResponseValidation.Initialise("http://localhost:3010/");
+                await ResponseValidation.ValidateResponse(HttpMethod.Get, "/v1/pets", HttpStatusCode.OK,
+                    new Dictionary<string, string>(), new List<object>());
                 Assert.Fail("Fail");
             }
             catch (Exception e)
             {
-                Assert.That(e.Message, Is.EqualTo("An error occurred while trying to initialise"));
+                Assert.That(e.Message, Is.EqualTo("You have not initialised the ResponseValidation object"));
+            }
+        }
+        
+        [Test]
+        public async Task ValidateResponseThrowsAnExceptionWhenMethodIsNotDefined()
+        {
+            await Setup();
+            
+            await ResponseValidation.Initialise("http://localhost:3010/");
+
+            try
+            {
+                await ResponseValidation.ValidateResponse(null, "/v1/pets", HttpStatusCode.OK,
+                    new Dictionary<string, string>(), new List<object>());
+                Assert.Fail("Fail");
+            }
+            catch (Exception e)
+            {
+                Assert.That(e.Message, Is.EqualTo("You must define a method"));
+            }
+        }
+        
+        [Test]
+        public async Task ValidateResponseThrowsAnExceptionWhenPathIsNotDefined()
+        {
+            await Setup();
+            
+            await ResponseValidation.Initialise("http://localhost:3010/");
+
+            try
+            {
+                await ResponseValidation.ValidateResponse(HttpMethod.Get, "", HttpStatusCode.OK,
+                    new Dictionary<string, string>(), new List<object>());
+                Assert.Fail("Fail");
+            }
+            catch (Exception e)
+            {
+                Assert.That(e.Message, Is.EqualTo("You must define a path"));
             }
         }
 
         private static void Bash(string cmd)
         {
             var escapedArgs = cmd.Replace("\"", "\\\"");
-
-            Console.WriteLine(Directory.GetCurrentDirectory());
 
             var process = new Process
             {
@@ -150,8 +232,9 @@ namespace OpenApiJsonResponseValidator.Tests
                     CreateNoWindow = true,
                 }
             };
+
             process.Start();
-            var result = process.StandardOutput.ReadToEnd();
+            process.StandardOutput.ReadToEnd();
             process.WaitForExit();
         }
         
@@ -163,9 +246,10 @@ namespace OpenApiJsonResponseValidator.Tests
             var client = new HttpClient();
 
             var attempts = 0;
+
             while (attempts < 100)
             {
-                Thread.Sleep(TimeSpan.FromMilliseconds(100));
+                await Task.Delay(TimeSpan.FromMilliseconds(100));
 
                 try
                 {
