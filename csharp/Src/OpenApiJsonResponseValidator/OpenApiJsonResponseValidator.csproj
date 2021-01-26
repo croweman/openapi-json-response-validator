@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <Description>OpenApiJsonResponseValidator csharp client.</Description>
+    <NetStandardImplicitPackageVersion>2.0.3</NetStandardImplicitPackageVersion>
+    <AssemblyName>OpenApiJsonResponseValidator</AssemblyName>
+    <RootNamespace>OpenApiJsonResponseValidator</RootNamespace>
+    <Product>OpenApiJsonResponseValidator</Product>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <PackageVersion>0.1.0</PackageVersion>
+    <Authors>Lee Crowe</Authors>
+    <Copyright>Copyright (c) 2021 Lee Crowe a.k.a. croweman</Copyright>
+    <PackageProjectUrl>https://github.com/croweman/openapi-json-response-validator/tree/main/csharp/README.md</PackageProjectUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <RepositoryUrl>https://github.com/croweman/openapi-json-response-validator/tree/main/csharp</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageLicenseUrl>https://github.com/croweman/openapi-json-response-validator/tree/main/csharp/README.md</PackageLicenseUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+</Project>

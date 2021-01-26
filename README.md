@@ -21,6 +21,7 @@ See <a href="./node">here<a/>.
 
 ## c# client<a name="csharpclient"></a>
 
+See <a href="./csharp">here<a/>.
 
 ---
 
