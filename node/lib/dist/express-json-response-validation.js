@@ -86,7 +86,7 @@ const isValidString = val => val !== undefined &&
 const validateRequest = body => body &&
     isValidString(body.method) &&
     isValidString(body.path) &&
-    (body.headers !== undefined || typeof(body.headers) === 'object') &&
+    (body.headers === undefined || typeof(body.headers) === 'object') &&
     (body.statusCode !== undefined || typeof(body.statusCode) === 'number')
 
 const startServer = async (options) => {
@@ -150,7 +150,7 @@ const exposeHttpServer = async () => {
         req.baseUrl = requestPath
         req.originalUrl = requestPath
         req.responseOverrides = {
-            headers: body.headers,
+            headers: body.headers || {},
             json: body.json,
             statusCode: body.statusCode
         }

@@ -28,7 +28,7 @@ The API will expose a REST micro service to perform the validation.
 ## Install<a name="install"></a>
 
 ```
-npm install `openapi-json-response-validator` --save
+npm install openapi-json-response-validator --save
 ```
 
 ---
@@ -78,21 +78,24 @@ dispose()
 You will firstly need to successfully `initialise` before you can call `validateResponse`.
 
 ```js
+const axios = require('axios')
 const { validateResponse } = require('openapi-json-response-validator')
 
+// get the response from the endpoint that needs validating
+const resposne = await axios.get('http://localhost/v1/pets')
+
+if (response.status !== 200)
+    throw new Error('That should not have happened')
+
+// validate the response against the specification
 try {
-    const result = await validateResponse('GET', '/v1/pets', { 'Cache-Control': 'no-cache' }, 200, [
-        {
-            id: 123,
-            name: 'joe',
-            type: 'dog'
-        }
-    ])
+    const result = await validateResponse('GET', '/v1/pets', 200, response.headers, response.data)
     
     if (result.valid === true) {
         console.log('the response conforms to the schema')
     } else {
         console.log('validation failed', result.errors)
+        throw new Error('Validation failed')
     }
 } catch(err) {
     console.log('An error occurred while trying to validate a response', err)
@@ -105,7 +108,7 @@ The parameters that can be provided on initialisation are below.
  - `method`: (required) The http method.
  - `path`: (required) The request path.
  - `statusCode`: (required) The http status code.
- - `headers`: (required) The response headers as an object.
+ - `headers`: (optional) The response headers as an object.
  - `json`: (optional) Object or array.
 
 Will throw an error if something went wrong
@@ -120,26 +123,27 @@ const { initialise } = require('openapi-json-response-validator')
 
 const port = await initialise({ apiSpec: './api.yaml' })
 
+// get the response from the endpoint that needs validating
+const resposne = await axios.get('http://localhost/v1/pets')
+
+if (response.status !== 200)
+    throw new Error('That should not have happened')
+
+// validate the response against the specification
 try {
-    const response = await axios.post(`http://localhost:${port}/validate-response`, {
+    const validationResponse = await axios.post(`http://localhost:${port}/validate-response`, {
         method: 'GET',
         path: '/v1/pets',
         statusCode: 200,            
-        headers: { 'Cache-Control': 'no-cache' },
-        json: [
-          {
-              id: 123,
-              name: 'joe',
-              type: 'dog'
-          }
-      ]
+        headers: response.headers,
+        json: response.data
     })
 
-    if (response.status === 200) {
-        if (response.data.valid === true)
+    if (validationResponse.status === 200) {
+        if (validationResponse.data.valid === true)
             console.log('Validation passed')
         else
-            console.log('Validation failed', response.data.errors)
+            console.log('Validation failed', validationResponse.data.errors)
     } else {
         throw new Error('Something went wrong trying to validate the response')
     }    
