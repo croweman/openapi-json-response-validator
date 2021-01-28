@@ -118,6 +118,21 @@ const validateResponse = async (method, path, statusCode, headers, json) => {
     }
 }
 
+const assertThatResponseIsValid = async (method, path, statusCode, headers, json) => {
+    const result = await validateResponse(method, path, statusCode, headers, json)
+    
+    if (result.valid === true) return
+    
+    let errorMessage = 'Response validation failed with the following errors:'
+    
+    result.errors.forEach(err => {
+        let error = typeof(err) === 'string' ? err : JSON.stringify(err)
+        errorMessage += ` ${error}.`
+    })
+    
+    throw new Error(errorMessage)
+}
+
 const exposeHttpServer = async () => {
 
     app.use(bodyParser.json())
@@ -222,6 +237,7 @@ const stopServers = () => {
 }
 
 module.exports = {
+    assertThatResponseIsValid,
     initialise,
     initialised: () => validationInitialised,
     initialisationErrored: () => initialisationError || validationServiceInitialisationErrored(),

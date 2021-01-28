@@ -11,6 +11,7 @@ The Node.js micro service can be exposed natively in `Node.js` or <a href="../do
 - [Use](#use)
   - [Initialise](#initialise)
   - [ValidateResponse](#validateresponse)
+  - [AssertThatResponseIsValid](#assert)
 - [License](#license)
 
 ---
@@ -100,6 +101,81 @@ The parameters that can be provided to ValidateResponse are below.
  - `statusCode`: (required) The HttpStatusCode.
  - `headers`: (optional) The response headers.
  - `json`: (optional) Object to be serialized to json.
+ 
+There is also another overload that accepts a HttpRequestMessage and HttpResponseMessage
+ 
+```c#
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using OpenApiJsonResponseValidator;
+using Newtonsoft.Json;
+ 
+public static async Task DoesEndpointReturnValidResponse()
+{
+    // example request and response objects
+    var request = new HttpRequestMessage(HttpMethod.Get, new Uri("http://localhost/v1/pets"));
+    var response = new HttpResponseMessage(HttpStatusCode.OK) {Content = new StringContent("")};
+     
+    var validationResult = await ResponseValidation.ValidateResponse(reqeust, response);
+}
+```
+
+---
+
+## AssertThatResponseIsValid<a name="assert"></a>
+
+You will firstly need to successfully `Initialise` before you can call `ValidateResponse`.
+
+```c#
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using OpenApiJsonResponseValidator;
+using Newtonsoft.Json;
+
+public static async Task DoesEndpointReturnValidResponse()
+{
+    var httpClient = new HttpClient();
+    var response = await httpClient.GetAsync("http://localhost/v1/pets");
+    var headers = ResponseValidation.GetResponseHeaders(response);
+    var json = JsonConvert.DeserializeObject(await response.Content.ReadAsStringAsync());
+    
+    await ResponseValidation.AssertThatResponseIsValid(HttpMethod.Get,
+        "/v1/pets", HttpStatusCode.OK, headers, json);
+}
+```
+
+The parameters that can be provided to AssertThatResponseIsValid are below.
+
+### options
+ - `method`: (required) The HttpMethod.
+ - `path`: (required) The request path.
+ - `statusCode`: (required) The HttpStatusCode.
+ - `headers`: (optional) The response headers.
+ - `json`: (optional) Object to be serialized to json.
+ 
+There is also another overload that accepts a HttpRequestMessage and HttpResponseMessage
+ 
+```c#
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using OpenApiJsonResponseValidator;
+using Newtonsoft.Json;
+ 
+public static async Task DoesEndpointReturnValidResponse()
+{
+    // example request and response objects
+    var request = new HttpRequestMessage(HttpMethod.Get, new Uri("http://localhost/v1/pets"));
+    var response = new HttpResponseMessage(HttpStatusCode.OK) {Content = new StringContent("")};
+     
+    await ResponseValidation.AssertThatResponseIsValid(reqeust, response);
+}
+```
 
 ---
 

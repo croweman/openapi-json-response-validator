@@ -1,4 +1,11 @@
-const { initialise, initialised, initialisationErrored, validateResponse, dispose } = require('../lib')
+const { 
+    assertThatResponseIsValid,
+    initialise,
+    initialised,
+    initialisationErrored,
+    validateResponse,
+    dispose
+} = require('../lib')
 const axios = require('axios');
 const { expect } = require('chai')
 
@@ -228,7 +235,54 @@ describe('openapi-json-response-validator', () => {
                     expect(initialisationErrored()).to.equal(false)
                 })
             })
-        })  
+        })
+
+        describe('assertThatResponseIsValid', () => {
+            describe('throws no error', () => {
+                it('when the response is a valid empty array', async () => {
+                    await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
+
+                    await assertThatResponseIsValid('GET', testCase.requestPath, 200, {}, [])
+                })
+
+                it('when the response is a valid populated array', async () => {
+                    await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
+
+                    await assertThatResponseIsValid('GET', testCase.requestPath,200, {}, [
+                        {
+                            id: 123,
+                            id: 123,
+                            name: 'joe',
+                            type: 'dog'
+                        }
+                    ])
+                })
+            })
+
+            describe('throws an error', () => {
+                it('when not initialised', async () => {
+                    try {
+                        await assertThatResponseIsValid('GET', testCase.requestPath, 200, {}, {})
+                        throw new Error('Fail')
+                    } catch (err) {
+                        expect(err.message).to.equal('You must initialise')
+                        expect(initialised()).to.equal(false)
+                        expect(initialisationErrored()).to.equal(false)
+                    }
+                })
+
+                it('when the response is not of the expected type', async () => {
+                    await initialise({ apiSpec: testCase.apiSpec, exitProcessWhenServiceIsStopped: false })
+
+                    try {
+                        await assertThatResponseIsValid('GET', testCase.requestPath, 200, {}, {})
+                        throw new Error('Fail')
+                    } catch (err) {
+                        expect(err.message).to.equal('Response validation failed with the following errors: {"path":".response","message":"should be array","errorCode":"type.openapi.validation"}.')
+                    }
+                })
+            })
+        })
     })
 
     describe('express server', () => {

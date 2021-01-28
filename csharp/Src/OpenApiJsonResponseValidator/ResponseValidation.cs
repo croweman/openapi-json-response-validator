@@ -59,6 +59,22 @@ namespace OpenApiJsonResponseValidator
         /// <summary>
         /// Validates a http response
         /// </summary>
+        /// <param name="request">HttpRequestMessage</param>
+        /// <param name="response">HttpResponseMessage</param>
+        /// <returns>A ValidationResult</returns>
+        /// <exception cref="Exception"></exception>
+        public static async Task<ValidationResult> ValidateResponse(HttpRequestMessage request,
+            HttpResponseMessage response)
+        {
+            var headers = GetResponseHeaders(response);
+            var json = JsonConvert.DeserializeObject(await response.Content.ReadAsStringAsync());
+
+            return await ValidateResponse(request.Method, request.RequestUri.AbsolutePath, response.StatusCode, headers, json);
+        }
+        
+        /// <summary>
+        /// Validates a http response
+        /// </summary>
         /// <param name="method">Http method</param>
         /// <param name="path">Request path</param>
         /// <param name="statusCode">Response status code</param>
@@ -134,9 +150,43 @@ namespace OpenApiJsonResponseValidator
                     }
                 };
             }
-
         }
         
+        /// <summary>
+        /// Asserts that the http response is valid
+        /// </summary>
+        /// <param name="method">Http method</param>
+        /// <param name="path">Request path</param>
+        /// <param name="statusCode">Response status code</param>
+        /// <param name="headers">Response headers (optional)</param>
+        /// <param name="json">Json content (object or null).  A string should not be supplied!</param>
+        /// <exception cref="Exception"></exception>
+        public static async Task AssertThatResponseIsValid(
+            HttpMethod method,
+            string path,
+            HttpStatusCode statusCode,
+            Dictionary<string, string> headers = null,
+            object json = null)
+        {
+            var validationResult = await ValidateResponse(method, path, statusCode, headers, json);
+
+            ProcessValidationResult(validationResult);
+        }
+        
+        /// <summary>
+        /// Asserts that the http response is valid
+        /// </summary>
+        /// <param name="request">HttpRequestMessage</param>
+        /// <param name="response">HttpResponseMessage</param>
+        /// <exception cref="Exception"></exception>
+        public static async Task AssertThatResponseIsValid(HttpRequestMessage request,
+            HttpResponseMessage response)
+        {
+            var validationResult = await ValidateResponse(request, response);
+
+            ProcessValidationResult(validationResult);
+        }
+
         /// <summary>
         /// Converts response headers to a dictionary
         /// </summary>
@@ -157,6 +207,18 @@ namespace OpenApiJsonResponseValidator
             
             if (_client is object)
                 _client.Dispose();
+        }
+
+        private static void ProcessValidationResult(ValidationResult validationResult)
+        {
+            if (validationResult.Valid) return;
+
+            var errorMessage = "Response validation failed with the following errors:";
+
+            foreach (var error in validationResult.Errors)
+                errorMessage += $" {error}.";
+
+            throw new Exception(errorMessage);
         }
     }
 }

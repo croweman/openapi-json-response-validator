@@ -13,6 +13,7 @@ The API will expose a REST micro service to perform the validation.
   - [dispose](#dispose)
   - [validateResponse](#validateresponse)
   - [Validate Response Http Request](#validateresponsehttp)
+  - [assertThatResponseIsValid](#assert)
 - [License](#license)
 
 ---
@@ -152,6 +153,41 @@ try {
     console.log(err)
 }
 ```
+
+---
+
+## assertThatResponseIsValid<a name="assert"></a>
+
+You will firstly need to successfully `initialise` before you can call `assertThatResponseIsValid`.
+
+```js
+const axios = require('axios')
+const { validateResponse } = require('openapi-json-response-validator')
+
+// get the response from the endpoint that needs validating
+const resposne = await axios.get('http://localhost/v1/pets')
+
+if (response.status !== 200)
+    throw new Error('That should not have happened')
+
+// validate the response against the specification
+try {
+    await assertThatResponseIsValid('GET', '/v1/pets', 200, response.headers, response.data)
+} catch(err) {
+    console.log('An error occurred while trying to validate a response', err)
+}
+```
+
+The parameters that can be provided on initialisation are below.
+
+### options
+ - `method`: (required) The http method.
+ - `path`: (required) The request path.
+ - `statusCode`: (required) The http status code.
+ - `headers`: (optional) The response headers as an object.
+ - `json`: (optional) Object or array.
+
+Will throw an error if something went wrong
 
 ---
 

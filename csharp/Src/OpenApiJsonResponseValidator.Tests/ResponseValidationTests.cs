@@ -107,6 +107,22 @@ namespace OpenApiJsonResponseValidator.Tests
             Assert.That(validationResult.Valid, Is.True);
             Assert.That(validationResult.Errors.Count, Is.EqualTo(0));
         }
+        
+        [Test]
+        public async Task ValidateResponseValidShouldBeTrueWhenResponseConformsToOpenApiSpecWhenUsingRequestAndResponseOverload()
+        {
+            await Setup();
+            
+            await ResponseValidation.Initialise("http://localhost:3010/");
+            
+            var request = new HttpRequestMessage(HttpMethod.Get, new Uri("http://localhost/v1/pets"));
+            var response = new HttpResponseMessage(HttpStatusCode.OK) {Content = new StringContent("[]")};
+
+            var validationResult = await ResponseValidation.ValidateResponse(request, response);
+            
+            Assert.That(validationResult.Valid, Is.True);
+            Assert.That(validationResult.Errors.Count, Is.EqualTo(0));
+        }
 
         [Test]
         public async Task ValidateResponseValidShouldBeFalseWhenResponseDoesNotConformToOpenApiSpec_1()
@@ -213,6 +229,68 @@ namespace OpenApiJsonResponseValidator.Tests
             catch (Exception e)
             {
                 Assert.That(e.Message, Is.EqualTo("You must define a path"));
+            }
+        }
+
+        [Test]
+        public async Task AssertThatResponseIsValidThrowsNoErrorWhenTheResponseConformsToTheSpecificationUsingRequestAndResponseOverloads()
+        {
+            await Setup();
+            
+            await ResponseValidation.Initialise("http://localhost:3010/");
+            
+            var request = new HttpRequestMessage(HttpMethod.Get, new Uri("http://localhost/v1/pets"));
+            var response = new HttpResponseMessage(HttpStatusCode.OK) {Content = new StringContent("[]")};
+
+            await ResponseValidation.AssertThatResponseIsValid(request, response);
+        }
+        
+        [Test]
+        public async Task AssertThatResponseIsValidThrowsNoErrorWhenTheResponseConformsToTheSpecification()
+        {
+            await Setup();
+            
+            await ResponseValidation.Initialise("http://localhost:3010/");
+
+            await ResponseValidation.AssertThatResponseIsValid(HttpMethod.Get, "/v1/pets", HttpStatusCode.OK, null, new object[]{});
+        }
+
+        [Test]
+        public async Task AssertThatResponseIsValidThrowsAnErrorWhenTheResponseDoesNotConformToTheSpecificationUsingRequestAndResponseOverloads()
+        {
+            await Setup();
+            
+            await ResponseValidation.Initialise("http://localhost:3010/");
+
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, new Uri("http://localhost/v1/pets"));
+                var response = new HttpResponseMessage(HttpStatusCode.OK) {Content = new StringContent("")};
+
+                await ResponseValidation.AssertThatResponseIsValid(request, response);
+                throw new Exception("Fail");
+            }
+            catch (Exception e)
+            {
+                Assert.That(e.Message, Is.EqualTo("Response validation failed with the following errors: {\"path\":\".response\",\"message\":\"response body required.\"}."));
+            }
+        }
+        
+        [Test]
+        public async Task AssertThatResponseIsValidThrowsAnErrorWhenTheResponseDoesNotConformToTheSpecification()
+        {
+            await Setup();
+            
+            await ResponseValidation.Initialise("http://localhost:3010/");
+
+            try
+            {
+                await ResponseValidation.AssertThatResponseIsValid(HttpMethod.Get, "/v1/pets", HttpStatusCode.OK, null, "");
+                throw new Exception("Fail");
+            }
+            catch (Exception e)
+            {
+                Assert.That(e.Message, Is.EqualTo("Response validation failed with the following errors: {\"path\":\".response\",\"message\":\"should be array\",\"errorCode\":\"type.openapi.validation\"}."));
             }
         }
 
