@@ -1,6 +1,6 @@
 {
   "name": "openapi-json-response-validator",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Validates a json response against an OpenApi 3 specification",
   "main": "./lib/index.js",
   "repository": {
@@ -27,7 +27,7 @@
   "dependencies": {
     "axios": "~0.21.1",
     "express": "^4.17.1",
-    "express-openapi-validator": "~4.10.8"
+    "express-openapi-validator": "~4.10.11"
   },
   "devDependencies": {
     "chai": "~3.5.0",

@@ -204,7 +204,6 @@ const exposeHttpServer = async () => {
             });
         });
     });
-    
 
     server = await app.listen(port)
     port = server.address().port

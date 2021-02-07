@@ -10,6 +10,7 @@ info:
 servers:
   - url: /v1
 paths:
+asdf
   /ping:
     get:
       description: |
