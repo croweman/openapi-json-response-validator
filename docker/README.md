@@ -11,14 +11,14 @@ services:
 
   validation-status:
     container_name: validation-status
-    image: croweman/openapi-json-response-validator:0.0.4
+    image: croweman/openapi-json-response-validator:0.0.7
     command: sh -c "sh wait-for-it.sh http://app:3010/readiness && echo 'We can now validate!'"
     volumes:
       - ./wait-for-it.sh:/app/wait-for-it.sh
   
   app:
     container_name: openapi-json-response-validator
-    image: croweman/openapi-json-response-validator:0.0.4
+    image: croweman/openapi-json-response-validator:0.0.7
     restart: "on-failure:10"
     volumes:
       - ./api.yaml:/app/api.yaml
