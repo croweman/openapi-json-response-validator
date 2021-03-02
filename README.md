@@ -6,30 +6,10 @@ The API will expose a REST micro service to perform the validation.
 
 ## Table of contents
 
-- [node client](#nodeclient)
-- [c# client](#csharpclient)
-- [Docker](#docker)
+- <a href="./node">node client<a/>
+- <a href="./csharp">c# client<a/>
+- <a href="./docker">Docker<a/>
 - [License](#license)
-
----
-
-## node client<a name="nodeclient"></a>
-
-See <a href="./node">here<a/>.
-
----
-
-## c# client<a name="csharpclient"></a>
-
-See <a href="./csharp">here<a/>.
-
----
-
-## Docker<a name="docker"></a>
-
-Expose the `validate-response` endpoint in a docker container.
-
-See <a href="./docker">here<a/>.
 
 ---
 
