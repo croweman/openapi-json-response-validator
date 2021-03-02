@@ -118,7 +118,7 @@ public static async Task DoesEndpointReturnValidResponse()
     var request = new HttpRequestMessage(HttpMethod.Get, new Uri("http://localhost/v1/pets"));
     var response = new HttpResponseMessage(HttpStatusCode.OK) {Content = new StringContent("")};
      
-    var validationResult = await ResponseValidation.ValidateResponse(reqeust, response);
+    var validationResult = await ResponseValidation.ValidateResponse(request, response);
 }
 ```
 
@@ -173,7 +173,7 @@ public static async Task DoesEndpointReturnValidResponse()
     var request = new HttpRequestMessage(HttpMethod.Get, new Uri("http://localhost/v1/pets"));
     var response = new HttpResponseMessage(HttpStatusCode.OK) {Content = new StringContent("")};
      
-    await ResponseValidation.AssertThatResponseIsValid(reqeust, response);
+    await ResponseValidation.AssertThatResponseIsValid(request, response);
 }
 ```
 
