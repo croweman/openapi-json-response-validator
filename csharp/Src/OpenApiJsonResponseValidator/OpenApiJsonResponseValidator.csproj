@@ -7,9 +7,9 @@
     <AssemblyName>OpenApiJsonResponseValidator</AssemblyName>
     <RootNamespace>OpenApiJsonResponseValidator</RootNamespace>
     <Product>OpenApiJsonResponseValidator</Product>
-    <AssemblyVersion>0.2.0.0</AssemblyVersion>
-    <FileVersion>0.2.0.0</FileVersion>
-    <PackageVersion>0.2.0</PackageVersion>
+    <AssemblyVersion>0.4.0.0</AssemblyVersion>
+    <FileVersion>0.4.0.0</FileVersion>
+    <PackageVersion>0.4.0</PackageVersion>
     <Authors>Lee Crowe</Authors>
     <Copyright>Copyright (c) 2021 Lee Crowe a.k.a. croweman</Copyright>
     <PackageProjectUrl>https://github.com/croweman/openapi-json-response-validator/tree/main/csharp/README.md</PackageProjectUrl>

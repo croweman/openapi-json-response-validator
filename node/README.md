@@ -162,7 +162,7 @@ You will firstly need to successfully `initialise` before you can call `assertTh
 
 ```js
 const axios = require('axios')
-const { validateResponse } = require('openapi-json-response-validator')
+const { assertThatResponseIsValid } = require('openapi-json-response-validator')
 
 // get the response from the endpoint that needs validating
 const resposne = await axios.get('http://localhost/v1/pets')

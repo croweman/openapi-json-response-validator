@@ -126,7 +126,7 @@ public static async Task DoesEndpointReturnValidResponse()
 
 ## AssertThatResponseIsValid<a name="assert"></a>
 
-You will firstly need to successfully `Initialise` before you can call `ValidateResponse`.
+You will firstly need to successfully `Initialise` before you can call `AssertThatResponseIsValid`.
 
 ```c#
 using System;
