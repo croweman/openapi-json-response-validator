@@ -12,6 +12,7 @@ The Node.js micro service can be exposed natively in `Node.js` or <a href="../do
   - [Initialise](#initialise)
   - [ValidateResponse](#validateresponse)
   - [AssertThatResponseIsValid](#assert)
+- [Using with Docker](#docker)
 - [License](#license)
 
 ---
@@ -174,6 +175,119 @@ public static async Task DoesEndpointReturnValidResponse()
     var response = new HttpResponseMessage(HttpStatusCode.OK) {Content = new StringContent("")};
      
     await ResponseValidation.AssertThatResponseIsValid(request, response);
+}
+```
+
+---
+
+## Using with Docker<a name="docker"></a>
+
+You may want your .net integration tests to spin up a docker containerised version of the OpenApi Json Response Validator service.
+
+To do this you will need to firstly ensure:
+
+1. You copy your swagger file `app.yaml` to the output directory of your test project.
+
+2. You copy a file named `docker-compose-openapi-validation.yml` to the output directory of your test project which looks similar to:
+
+```yml
+version: '3'
+
+services:
+
+  app:
+    image: croweman/openapi-json-response-validator:0.0.8
+    restart: "on-failure:10"
+    volumes:
+      - ./app.yaml:/app/api.yaml
+    ports:
+      - "9001:9000"
+    environment:
+      OPENAPI_JSON_RESPONSE_VALIDATOR_PORT: 9000
+```
+
+3. Include a Test Fixture setup within your test code base to spin up and take down the validation service before and after tests have ran.
+
+```c#
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using NUnit.Framework;
+using OpenApiJsonResponseValidator;
+
+[SetUpFixture]
+public class FixtureSetup
+{
+    private const string OpenApiValidationUrl = "http://localhost:9001";
+
+    [OneTimeSetUp]
+    public async Task Setup()
+    {
+        ToggleOpenApiValidationContainer(true);
+        await WaitForOpenApiValidationToBeReady();
+
+        await ResponseValidation.Initialise(OpenApiValidationUrl);
+    }
+
+    [OneTimeTearDown]
+    public void Teardown()
+    {
+        ToggleOpenApiValidationContainer(false);
+    }
+
+    private static void ToggleOpenApiValidationContainer(bool up)
+    {
+        var process = new Process
+        {
+            StartInfo =
+            {
+                WorkingDirectory = Directory.GetCurrentDirectory(),
+                FileName = "docker-compose",
+                Arguments = "-f docker-compose-openapi-validation.yml " + (up ? "up" : "down"),
+                WindowStyle = ProcessWindowStyle.Hidden
+            }
+        };
+        process.Start();
+
+        if (!up)
+            process.WaitForExit();
+    }
+
+    private static async Task WaitForOpenApiValidationToBeReady()
+    {
+        const int maxWaitTimeInMilliseconds = 20000;
+
+        var ready = await CheckForOpenApiValidationReadiness();
+        var stopwatch = Stopwatch.StartNew();
+
+        while (!ready)
+        {
+            await Task.Delay(10);
+            ready = await CheckForOpenApiValidationReadiness();
+
+            if (stopwatch.ElapsedMilliseconds > maxWaitTimeInMilliseconds)
+                throw new Exception("Open Api Json Validator never became ready");
+        }
+    }
+
+    private static async Task<bool> CheckForOpenApiValidationReadiness()
+    {
+        var client = new HttpClient();
+
+        try
+        {
+            var response = await client.GetAsync($"{OpenApiValidationUrl}/readiness");
+
+            return response is object && response.StatusCode == HttpStatusCode.OK;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }
 ```
 
